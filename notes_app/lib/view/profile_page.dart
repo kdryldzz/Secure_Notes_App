@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:notes_app/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:notes_app/controller/profile_page_controller.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,7 +13,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final SupabaseClient _supabase = Supabase.instance.client;
   String? userEmail;
-  final ProfilePageController _controller = ProfilePageController();
 
   @override
   void initState() {
@@ -97,21 +97,24 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 60),
-              ElevatedButton(
-                onPressed: () {
-                  _controller.logout(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              Consumer<AuthProvider>(builder: (context, value, child) {
+                return ElevatedButton(
+                  onPressed: () {
+                    value.logout(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                ),
-                child: const Text(
-                  'Logout',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                  child: const Text(
+                    'Logout',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                );
+              },
               ),
             ],
           ),

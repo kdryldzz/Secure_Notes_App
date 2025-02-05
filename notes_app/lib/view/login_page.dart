@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/controller/login_page_controller.dart';
+import 'package:notes_app/providers/auth_provider.dart';
 import 'package:notes_app/view/register_page.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,8 +13,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
   final emailController = TextEditingController();
-  final LoginPageController _controller = LoginPageController();
-
   @override
   void dispose() {
     passwordController.dispose();
@@ -73,21 +72,24 @@ class _LoginPageState extends State<LoginPage> {
                   obscureText: true,
                 ),
                 const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: () {
-                    _controller.login(emailController.text, passwordController.text, context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                Consumer<AuthProvider>(builder: (context, value, child) {
+                  return ElevatedButton(
+                    onPressed: () {
+                      value.login(emailController.text, passwordController.text, context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  ),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
+                    child: const Text(
+                      'Login',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                  ); 
+                },
                 ),
                 const SizedBox(height: 20),
                 TextButton(

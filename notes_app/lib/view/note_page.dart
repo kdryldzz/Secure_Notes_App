@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/controller/note_page_controller.dart';
+import 'package:notes_app/providers/auth_provider.dart';
+import 'package:notes_app/providers/database_provider.dart';
 import 'package:notes_app/services/note_database.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotePage extends StatefulWidget {
@@ -11,11 +13,10 @@ class NotePage extends StatefulWidget {
 }
 
 class _NotePageState extends State<NotePage> {
-  final notesDatabase = NoteDatabase();
-  final NotePageController _controller = NotePageController();
+  final NoteDatabase notesDatabase = NoteDatabase();
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  //BUILD UI
+  //BUILD UIs
   @override
   Widget build(BuildContext context) {
     final user = _supabase.auth.currentUser;
@@ -44,12 +45,14 @@ class _NotePageState extends State<NotePage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              _controller.logout(context);
-            },
-          ),
+          Consumer<AuthProvider>(builder: (context, value, child) {
+            return IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {
+                value.logout(context);
+              },
+            );
+          }),
         ],
       ),
       body: Container(
@@ -61,56 +64,67 @@ class _NotePageState extends State<NotePage> {
         ),
         child: Padding(
           padding: const EdgeInsets.only(top: 60.0),
-          child: StreamBuilder(
-            stream: notesDatabase.getNotesForUser(user.id),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-              final notes = snapshot.data!;
-          
-              return ListView.builder(
-                padding: const EdgeInsets.all(8.0),
-                itemCount: notes.length,
-                itemBuilder: (context, index) {
-                  final note = notes[index];
-                  return Card(
-                    color: Colors.white.withOpacity(0.8),
-                    margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: ListTile(
-                      title: Text(
-                        note.content,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black.withOpacity(0.7),
+          child: Consumer<DatabaseProvider>(
+            builder: (context, value, child) {
+              return StreamBuilder(
+                stream: notesDatabase.getNotesForUser(user.id),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  final notes = snapshot.data!;
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(8.0),
+                    itemCount: notes.length,
+                    itemBuilder: (context, index) {
+                      final note = notes[index];
+                      return ChangeNotifierProvider.value(
+                        value: value,
+                        child: Consumer<DatabaseProvider>(
+                          builder: (context, value, child) {
+                            return Card(
+                              color: Colors.white.withOpacity(0.8),
+                              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: ListTile(
+                                title: Text(
+                                  note.content,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black.withOpacity(0.7),
+                                  ),
+                                ),
+                                trailing: SizedBox(
+                                  width: 100,
+                                  child: Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.delete),
+                                        onPressed: () {
+                                          value.deleteNote(context, note);
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.edit),
+                                        onPressed: () {
+                                          value.updateNote(context, note);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                      trailing: SizedBox(
-                        width: 100,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                _controller.deleteNote(context, note);
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                _controller.updateNote(context, note);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                      );
+                    },
                   );
                 },
               );
@@ -118,9 +132,13 @@ class _NotePageState extends State<NotePage> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _controller.addNewNote(context),
-        child: const Icon(Icons.add),
+      floatingActionButton: Consumer<DatabaseProvider>(
+        builder: (context, value, child) {
+          return FloatingActionButton(
+            onPressed: () => value.addNewNote(context),
+            child: const Icon(Icons.add),
+          );
+        },
       ),
     );
   }

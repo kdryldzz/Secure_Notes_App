@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/controller/register_page_controller.dart';
+import 'package:notes_app/providers/auth_provider.dart';
 import 'package:notes_app/view/login_page.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -12,7 +13,6 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final passwordController = TextEditingController();
   final emailController = TextEditingController();
-  final RegisterPageController _controller = RegisterPageController();
 
   @override
   void dispose() {
@@ -73,21 +73,24 @@ class _RegisterPageState extends State<RegisterPage> {
                   obscureText: true,
                 ),
                 const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: () {
-                    _controller.register(emailController.text, passwordController.text, context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                Consumer<AuthProvider>(builder: (context, value, child) {
+                  return ElevatedButton(
+                    onPressed: () {
+                    value.register(emailController.text, passwordController.text, context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  ),
-                  child: const Text(
-                    'Register',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
+                    child: const Text(
+                      'Register',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                  );
+                },
                 ),
                 const SizedBox(height: 20),
                 TextButton(

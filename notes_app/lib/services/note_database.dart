@@ -1,6 +1,5 @@
 import 'package:notes_app/model/note.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 class NoteDatabase {
 
 //database -> notes 

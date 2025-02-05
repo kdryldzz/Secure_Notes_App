@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/layouts/bottom_navbar_layout.dart';
-import 'package:notes_app/view/login_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:notes_app/providers/auth_provider.dart';
+import 'package:notes_app/providers/database_provider.dart';
+import 'package:notes_app/services/auth_gate.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -10,26 +11,28 @@ void main() async {
     url: 'https://mwntcxanmdyxktidzkyl.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bnRjeGFubWR5eGt0aWR6a3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc4ODExMDIsImV4cCI6MjA1MzQ1NzEwMn0.loFIITVweuUjk0BAZ2_tDQbKEOGsjYsSUlt3-r1rfys',
   );
-  final prefs = await SharedPreferences.getInstance();
-  final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final bool isLoggedIn;
-  const MyApp({super.key, required this.isLoggedIn});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context)=>AuthProvider()),
+        ChangeNotifierProvider(create: (context)=>DatabaseProvider())
+      ],
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: AuthGate(),
       ),
-      home: isLoggedIn ? const BottomNavbarLayout() : const LoginPage(),
     );
   }
 }
